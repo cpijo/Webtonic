@@ -86,3 +86,4 @@ C:\Users\Sphiwe\source\repos\Webtonic\obj\Debug\Webtonic.csproj.CoreCompileInput
 C:\Users\Sphiwe\source\repos\Webtonic\obj\Debug\Webtonic.csproj.CopyComplete
 C:\Users\Sphiwe\source\repos\Webtonic\obj\Debug\Webtonic.dll
 C:\Users\Sphiwe\source\repos\Webtonic\obj\Debug\Webtonic.pdb
+C:\Users\Sphiwe\source\repos\Webtonic\obj\Debug\Webtonic.csproj.AssemblyReference.cache
