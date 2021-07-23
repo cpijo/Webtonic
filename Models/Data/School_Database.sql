@@ -1,6 +1,39 @@
-﻿
+﻿Create Database School;
+use School;
+   CREATE TABLE StudentResults
+ ( 
+  StudentId varchar(50) NOT NULL,
+  Firstname varchar(50) NOT NULL,
+  Surname varchar(50) NOT NULL,
+  CourseId    varchar(50) NOT NULL,
+  CourseName    varchar(50) NOT NULL,
+  Grade    varchar(5) NOT NULL
+ );
 
- use CollegeDB;
+CREATE TABLE Students
+( 
+ StudentId varchar(50) NOT NULL,
+ Firstname varchar(50) NOT NULL,
+ Surname varchar(50) NOT NULL,
+ PRIMARY KEY (StudentId)
+);
+
+create table Grades
+(
+StudentId varchar(50) NOT NULL ,
+CourseId varchar(50) NOT NULL ,
+Grade varchar(5) NOT NULL ,
+ PRIMARY KEY (StudentId,CourseId)
+);
+
+create table Courses
+(
+CourseId varchar(50) NOT NULL ,
+CourseName varchar(50) NOT NULL ,
+ PRIMARY KEY (CourseId)
+);
+
+
  INSERT INTO StudentResults(StudentId,Firstname,Surname,CourseId,CourseName,Grade) values('96041','Faheem','Takbot','CS101','Computer Science 1','A') ; 
 INSERT INTO StudentResults(StudentId,Firstname,Surname,CourseId,CourseName,Grade) values('97041','Elleanor','Lozano','CS101','Computer Science 1','C') ; 
 INSERT INTO StudentResults(StudentId,Firstname,Surname,CourseId,CourseName,Grade) values('98041','Ameer ','Rees','CS201','Computer Science 2','D') ;
@@ -38,36 +71,4 @@ INSERT INTO School.dbo.Grades(StudentId,CourseId,Grade) values('99041','BS102','
 INSERT INTO School.dbo.Grades(StudentId,CourseId,Grade) values('20041','CS101','D');
 
 
-   CREATE TABLE StudentResults
- ( 
-  StudentId varchar(50) NOT NULL,
-  Firstname varchar(50) NOT NULL,
-  Surname varchar(50) NOT NULL,
-  CourseId    varchar(50) NOT NULL,
-  CourseName    varchar(50) NOT NULL,
-  Grade    varchar(5) NOT NULL
- );
-
-CREATE TABLE Students
-( 
- StudentId varchar(50) NOT NULL,
- Firstname varchar(50) NOT NULL,
- Surname varchar(50) NOT NULL,
- PRIMARY KEY (StudentId)
-);
-
-create table Grades
-(
-StudentId varchar(50) NOT NULL ,
-CourseId varchar(50) NOT NULL ,
-Grade varchar(5) NOT NULL ,
- PRIMARY KEY (StudentId,CourseId)
-);
-
-create table Courses
-(
-CourseId varchar(50) NOT NULL ,
-CourseName varchar(50) NOT NULL ,
- PRIMARY KEY (CourseId)
-);
 
