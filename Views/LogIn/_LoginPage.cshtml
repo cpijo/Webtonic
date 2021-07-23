@@ -1,0 +1,65 @@
+﻿@using Webtonic.Models.Entities;
+@model UserLogin
+
+<style type="text/css">
+    input[type="submit"] {
+        outline: 0;
+        outline: none
+    }
+
+    #childPage {
+        width: 400px;
+        left: calc(50% - 180px);
+        display: none;
+    }
+        #childPage #partialHolder {
+            border: none;
+            overflow-y: hidden;
+            overflow-x: hidden;
+            max-height: 260px;
+        }
+</style>
+
+<div id="Login-page" class="col-xs-12 rm-pd" style="padding-top:20px;">
+
+    @using (Ajax.BeginForm("LogIn", "LogIn", new AjaxOptions { HttpMethod = "Post", OnSuccess = "OnSuccess", OnFailure = "OnFailure"}, new { @id = "loginForm" }))
+    {
+        @Html.AntiForgeryToken()
+        <div class="form-group has-feedback" style="padding-left:10px;padding-right:10px;">
+            @Html.TextBoxFor(m => m.EmailAddress, new {@class = "form-control", @readonly = "readonly" })
+        </div>
+        <div class="form-group has-feedback" style="padding-left:10px;padding-right:10px;">           
+          @Html.TextBoxFor(m => m.Password, new { @class = "form-control",Type="Password" })           
+        </div>
+        <div class="form-group" style="padding-left:10px;padding-right:10px;">
+            <button type="submit" class="btn btn-success btnWidth btnlogColor">Sign In</button>
+            <button type="button" id="btnClose" class="btn btn-danger btnWidth btnlogColor" onclick="closepopup(this)">Close</button>
+            <hr />
+            <a href="#" style="color:blue;"><i class="fa fa-key"></i> I forgot my password </a>
+        </div>
+    }
+</div>
+
+
+<script>
+
+    function OnFailure(response) {
+        $('#div-busy-Icon').hide();
+        showMessage(response.message, "error", response.title);
+    }
+
+    function OnSuccess(response) {
+        $('#div-busy-Icon').hide();
+        if (response.result !== "false") {
+            controllerHelper.isLogin = true;
+            $('#layout-page .layout-div1').css("border-bottom", "5px solid orange");
+            $('#childPage').css("display", "none");
+            $('#PopupOverlay').css("display", "none");
+            $('#Home-Container #Home-page').css("display", "none");
+            $('#Home-Container #basePageId').empty().show().html(response);
+        }
+        else {
+            showMessage(response.message, "error", response.title);
+        }
+    }
+</script>

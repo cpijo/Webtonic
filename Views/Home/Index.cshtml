@@ -1,0 +1,204 @@
+﻿@{
+    ViewBag.Title = "Home Page";
+}
+
+<style>
+
+    #childPage {
+        position: absolute;
+        border: 0px solid red;
+        min-height: 260px;
+        width: 400px;
+        left: calc(50% - 180px);
+        top: 10px;
+        background-color: wheat;
+        opacity: 1;
+        z-index: 101;
+        border-top-left-radius: 5px;
+        border-top-right-radius: 5px;
+        display: none;
+    }
+
+
+
+    #divParentId .divHeader {
+        padding: 0;
+        margin: 0;
+        height: 30px;
+        border-top-left-radius: 5px;
+        border-top-right-radius: 5px;
+        background-color: rgb(59, 90, 108);
+    }
+    .homeImage {
+        height: calc(100vh - 150px);
+    }
+    #Home-Container .div-advert {
+        position: absolute;
+        top: 60px;
+        color: white;
+        width: 400px;
+        height: 60px;
+        left: 50%;
+        background-color: orange;
+
+        opacity: 1;
+        font-size: 30px;
+        line-height: 60px;
+    }
+    #partialHolder {
+        border: none;
+        overflow-y: scroll;
+        overflow-x: hidden;
+        height: 500px;
+    }
+
+
+</style>
+
+<div id="Home-Container" class="col-xs-12 rm-pd" style="border:0px solid green;">
+    <div id="PartialContainer" class="col-xs-12 rm-pd" style="border:0px solid yellow;">
+        <div id="Home-page" class="col-sm-12 rm-pd" style="display: block; border: 0px solid wheat;">
+            <div class="col-md-12 rm-pd" style="border:0px solid orange;">
+                <img class="homeImage col-xs-12 menu-top-header-icon rm-pd" src="~/images/webtonic-dreamer.jpg" />
+            </div>
+            <div class="col-md-12 rm-pd div-advert text-center" style="border:0px solid orange;">
+                THINK. DESIGN. BUILD!
+            </div>
+        </div>
+
+        <div id="childPage" class="slide-messagePopup" style="background-color:white;display:inline-block;border:1px solid rgb(29, 52, 67);display:none;">
+            <div id="divParentId" class="divParent col-xs-12" style="padding:0;margin:0;position: relative;">
+
+                <div class="divHeader col-xs-12" style="padding:0px;margin:0;">
+                    <p class="col-xs-12 headerText login-box-msg text-center rm-pd" style="top:4px;min-height:20px;max-height:20px; color:white"></p>
+                </div>
+
+                <div id="partialHolder" class="partialHolder col-xs-12" style="padding:0;min-height:30px;border:0px solid red;">
+                </div>
+
+                <div class="divSpaceAfterBody col-xs-12 rm-pd" style="min-height:5px;max-height:5px;background-color:rgb(59, 90, 108);border:0px solid red;">
+                </div>
+
+            </div>
+        </div>
+
+        <div id="basePageId" class="basePageClass container" style="display:none">
+
+
+
+        </div>
+
+        
+
+      
+    </div>
+
+
+</div>
+
+    <script>
+
+
+        $('#login').click(function () {
+            if (controllerHelper.isLogin === false) {
+                var objPage = controllerHelper.objPage;
+                objPage.partialHolder = "#Home-Container #childPage #partialHolder"
+                objPage.header = 'Login';
+                objPage.type = 'Post';
+                objPage.url = '/LogIn/LoginPage';
+
+                controllerHelper.requestController({ pageType: "popup", pageData: objPage });
+            }
+            else {
+                showMessage("you are already signed in", "warning", "Request not allowed");
+            }
+
+        });
+
+
+        var controllerHelper = {
+
+            requestController: function (pageObj) {
+                $('#div-busy-Icon').show();
+                $.ajax({
+                    url: pageObj.pageData.url,
+                    type: pageObj.pageData.type,
+                    contentType: 'application/json',
+                    datatype: 'application/json',
+                    processData: false,
+                    data: JSON.stringify(pageObj.data),
+                    cache: false,
+                    async: true,
+                    success: function (response) {
+                        $('#div-busy-Icon').hide();
+                        switch (pageObj.pageType) {
+                            case "popup":
+                                controllerHelper.returnChildPopup(response, pageObj.pageData);
+                                break;
+                            case "append":
+                                $('#partialTableHolder').empty().html(response);
+                                break;
+                            default:
+                                showMessage("error ajax", "error", "error ajax");
+                                break;
+                        }
+                    },
+                    error: function (data) {
+                        $('#div-busy-Icon').hide();
+                        showMessage("error ajax", "error", "error ajax");
+                    }
+                });
+            }
+            ,
+            returnChildPopup: function (response, pageData) {
+
+                if (response.result === "false") {
+                    showMessage(response.message, "error", response.title);
+                }
+                else {
+
+                    var popupOverlayLayout = pageData.popupOverlayLayout;
+                    var basePartialHolder = pageData.basePartialHolder;
+                    var partialHolder = pageData.partialHolder;
+                    var divHeader = pageData.divHeader;
+
+                    $(divHeader).empty().text(pageData.header);
+                    $(partialHolder).empty().html(response);
+                    $(popupOverlayLayout).css("display", "block").show();
+                    $(basePartialHolder).css("display", "block").show();
+                }
+            }
+            ,
+            objPage: {
+                popupOverlayLayout: "#PopupOverlay",
+                basePartialHolder: "#Home-Container #childPage",
+                partialHolder: "#Home-Container #childPage #partialHolder",
+                divHeader: "#Home-Container #childPage .divHeader p.headerText",
+                header: "Upload File",
+                type: 'Get',
+                url: '/Student/GetStudentResults',
+                data: {}
+            },
+            isLogin:false
+        };
+
+        function showMessage(Message, type, title) {
+            swal({
+                title: title,
+                text: Message,
+                type: type,
+                showCancelButton: false,
+                confirmButtonColor: "#DD6B55",
+                confirmButtonText: "OK!",
+                closeOnConfirm: true,
+                customClass: 'sweetalert-lg',
+                confirmButtonColor: '#294FA0',
+
+            });
+        }
+
+        function closepopup(me) {
+            $("#PopupOverlay , #Home-Container #childPage").css("display", "none");
+        }
+    </script>
+

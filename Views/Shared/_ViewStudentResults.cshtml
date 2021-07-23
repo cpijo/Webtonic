@@ -1,0 +1,159 @@
+﻿@model IEnumerable<Webtonic.Models.Entities.StudentResults>
+
+<style>
+        button {
+            border: none;
+            outline: 0;
+            display: inline-block;
+            padding: 8px;
+            color: white;
+            background-color: #000;
+            text-align: center;
+            cursor: pointer;
+            width: 100%;
+            font-size: 18px;
+        }
+        .rm-pd {
+            padding: 0px;
+            margin: 0;
+        }
+
+    #partialTableHolder {
+        overflow-y: scroll;
+        overflow-x: hidden;
+        height: 400px;
+    }
+</style>
+
+<div id="viewStudent-Page" class="bodyClass" style="padding-top:0px;border:0px solid rgb(29, 52, 67)">
+
+    <div class="col-sm-12" style="display:inline-block;border:0px solid yellow;display:block;height:500px;padding:0px;">
+        <div id="divParentId" class="divParent row col-md-12" style="padding:0;margin:0;">
+
+            <div class="divHeader col-md-12 rm-pd">
+                <p class="text-center col-md-12 rm-pd " style="top:4px;min-height:20px;max-height:20px; color:white">View Students Results</p>
+            </div>
+
+            <div class="col-md-12" style="padding:15px;padding-top:15px;border:2px solid silver;">
+
+                <div class="form-horizontal">
+
+                    <div class="form-group row">
+                        <label class="col-md-4 control-label">Select Table:</label>
+                        <div class="col-md-8">
+                            <select id="selectedTableId" class="form-control">
+                                <option value="1" selected>Three Tables (students, Course, Grades)</option>
+                                <option value="2">Simple Table (StudentResults Table)</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div id="div-searchId" class="form-group row" style="display:block;">
+                        <label class="col-md-4 control-label">Search Table :</label>
+                        <div class="col-md-8">
+                            <select id="selectedSearchId" class="form-control">
+                                <option value="0" selected>---select all---</option>
+                                <option value="1">List students </option>
+                                <option value="2">List Course </option>
+                                <option value="3">List Grades</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="form-group row">
+                        <label class="col-md-4 control-label"></label>
+                        <div class="col-md-8">
+                            <input id="btnUploadFile" type="submit" value="Uploaud File" class="btn btn-success" style="width:120px;" />
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+
+            <div class="divSeach col-xs-12" style="padding: 0px; padding: 20px; margin: 0; border: 2px solid silver;">
+
+                <div id="partialTableHolder" class="col-xs-12" style="padding:0;padding:20px;min-height:30px;max-height:520px;border:0px solid silver;">
+
+                    @Html.Partial("_StudentResultsTable", Model)
+
+                </div>
+
+            </div>
+
+            <div class="col-xs-12 rm-pd" style="min-height:5px;max-height:5px;background-color:rgb(59, 90, 108);border:0px solid red;">
+            </div>
+
+        </div>
+    </div>
+
+</div>
+
+
+<script>
+
+    $('#btnUploadFile').click(function () {
+
+        var selectedValue = $("#selectedTableId option:selected").val();
+
+        var objPage = controllerHelper.objPage;
+        objPage.partialHolder = "#Home-Container #childPage #partialHolder"
+        objPage.header = 'Upload File';
+        objPage.type = 'Post';
+        objPage.url = '/StudentsResults/UploadFile';
+
+        if (selectedValue === "1") {
+            objPage.url = '/Student/UploadFile'
+        }
+        controllerHelper.requestController({ pageType: "popup", pageData: objPage });
+
+    });
+
+
+
+    $("#selectedTableId").change(function (e) {
+        e.preventDefault();
+        var selectedValue = $("#selectedTableId option:selected").val();
+
+        var objPage = controllerHelper.objPage;
+        objPage.partialHolder = '#partialTableHolder';
+        objPage.header = 'Upload File';
+        objPage.type = 'Get';
+        objPage.url = '/StudentsResults/GetStudentResults';
+
+        $('#div-searchId').hide();
+        if (selectedValue === "1") {
+            $('#div-searchId').show();
+            objPage.url = '/Student/GetStudentResults'
+        }
+        controllerHelper.requestController({ pageType: "append", pageData: objPage });
+
+    });
+
+
+    $("#selectedSearchId").change(function (e) {
+        e.preventDefault();
+        $('#div-searchId').show();
+
+        var objPage = controllerHelper.objPage;
+        objPage.partialHolder = '#partialTableHolder';
+        objPage.header = 'Upload File';
+        objPage.type = 'Get';
+        objPage.url = '/Student/GetStudentResults';
+
+        var selectedValue = $("#selectedSearchId option:selected").val();
+        if (selectedValue === "1") {
+            objPage.url = '/Student/GetStudent';
+        }
+        else if (selectedValue === "2") {
+            objPage.url = '/Student/GetCourse';
+        }
+        else if (selectedValue === "3") {
+            objPage.url = '/Student/GetGrades';
+        }
+        else {
+            objPage.url = '/Student/GetStudentResults';
+            $('#div-searchId').hide();
+        }
+        controllerHelper.requestController({ pageType: "append", pageData: objPage });
+
+    });
+
+</script>

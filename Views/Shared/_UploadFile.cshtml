@@ -1,0 +1,89 @@
+﻿@model Webtonic.Models.Entities.FileModel
+
+<style>
+    #childPage {
+        width: 800px;
+        left: calc(50% - 400px);
+        display: none;
+    }
+        #childPage #partialHolder {
+            /*height: calc(100% - 2px);*/
+            border: none;
+            overflow-y: hidden;
+            overflow-x: hidden;
+            max-height: 260px;
+        }
+</style>
+
+<div id="register-page" class="col-xs-12">
+        <div class="form-horizontal" style="padding-top:20px;">
+
+            <div class="form-group">
+                @Html.LabelFor(model => model.uploaFile, new { @class = "col-sm-4 control-label" })
+                <div class="col-md-8">
+                    @Html.TextBoxFor(m => m.uploaFile, new { type = "file", @id = "uploaFile", @class = "uploaFile col-sm-12 fileStyle form-control" })
+                </div>
+            </div>
+
+            <div class="form-group">
+                @Html.LabelFor(model => model.Destination, new { @class = "col-sm-4 control-label" })
+                <div class="col-md-8">
+                    @Html.TextBoxFor(model => model.Destination, new {@class = "form-control", @readonly = "readonly" })
+                </div>
+            </div>
+
+            <div class="form-group">
+                <div class="col-md-offset-4 col-md-10">
+                    <input  id="btnUploadFile" type="button" value="Save" class="btn btn-success" onclick='return validateInput()' />
+                    <button type="button" id="btnClose" class="btn btn-danger btnWidth btnlogColor" onclick="closepopup(this)">Close</button>
+                </div>
+            </div>
+        </div>
+</div>
+
+<script>
+
+    $("#btnUploadFile").click(function (element) {
+        var file = $('#uploaFile')[0].files[0]
+        var formdata = new FormData();
+        formdata.append('uploaFile', file);
+
+        var url = '/StudentsResults/SaveStudentResults';
+        var selectedValue = $("#selectedTableId option:selected").val();
+        if (selectedValue === "1") {
+            url = '/Student/SaveStudentResults'
+        }
+        $('#div-busy-Icon').show();
+        $.ajax({
+
+            url: url,
+            type: "POST",
+            contentType: false,
+            processData: false, 
+            data: formdata,
+            success: function (response) {
+
+                if (response.result === "false") {
+                    showMessage(response.message, "error", response.title);
+                }
+                else {
+              
+                $('#div-busy-Icon').hide();
+                $('#Home-Container #childPage, #layout-page #PopupOverlay').hide();
+                $('#viewStudent-Page #partialTableHolder').empty().append(response);
+                showMessage("Data saved and Table Resheshed", "success", "Request Successfully");
+                }
+            },
+            error: function () {
+                $('#div-busy-Icon').hide();
+                showMessage("File Failed To Saved", "error", "error");
+            }
+        });
+    });
+
+    function validateInput() {
+        return true;
+    }
+
+
+</script>

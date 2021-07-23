@@ -1,0 +1,218 @@
+﻿<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>@ViewBag.Title - My ASP.NET Application</title>
+
+<link href="~/Content/bootstrap.css" rel="stylesheet" />
+<script src="~/Scripts/jquery-3.4.1.js"></script>
+<script src="~/Scripts/bootstrap.js"></script>
+ <script src="~/Scripts/jquery.unobtrusive-ajax.min.js"></script>
+ <link href="~/Scripts/sweetalert/sweetalert1.css" rel="stylesheet" />
+ <script src="~/Scripts/sweetalert/sweetalert.min.js"></script>
+ <link href="~/Content/webtonic.css" rel="stylesheet" />
+    <style>
+
+            #layout-page ul {
+                list-style: none;
+                list-style-type: none;
+                margin-top: 35px;
+                top: 0px;
+                width: calc(100%-300px);
+                border: 0px solid red;
+                height: 60px;
+            }
+
+                #layout-page ul li {
+                    list-style: none;
+                    list-style-type: none;
+                    display: inline;
+                    float: left;
+                    padding-left: 35px;
+                    padding-right: 35px;
+                    border: 0px solid orange;
+                    height: 30px;
+                }
+
+            #layout-page #logo img {
+                margin-top: 25px;
+            }
+
+        .rm-pd {
+            padding: 0;
+            margin: 0;
+        }
+
+
+        #login a {
+            display: block;
+            background-color: orange;
+            height: 50px;
+            width: 90px;
+            color: white;
+            margin-top: -12px;
+        }
+        #login span.login {
+        border:thin solid blue;
+        }
+
+        #PopupOverlay, #div-busy-Icon {
+            position: relative;
+            opacity: 0.5;
+            width: 100%;
+            height: 100%;
+            z-index: 100;
+            top: 0;
+            left: 0;
+            position: fixed;
+            background-color: rgb(29, 52, 67);
+            display: none;
+        }
+
+        #div-busy-Icon {
+            z-index: 200;
+        }
+            #div-busy-Icon .busy-icon {
+                position: relative;
+                top: 50%;
+                left: 50%;
+                height: 40px;
+                z-index: 201;
+                border-radius:25px;
+            }
+
+        .btn {
+            background-color: rgb(51, 72, 86);
+            width: 84px;
+            color: white;
+        }
+        input[type="submit"] {
+            outline: 0;
+            outline: none
+        }
+
+        button {
+            border: none;
+            outline: 0;
+            display: inline-block;
+            padding: 8px;
+            color: white;
+            background-color: #000;
+            text-align: center;
+            cursor: pointer;
+           
+            font-size: 18px;
+        }
+
+        .menu-item a {
+            list-style: none;
+            list-style-type: none;
+            text-decoration: none;
+            position: relative;
+        }
+        a {
+            display: block;
+            position: relative;
+            padding: 2px 0;
+        }
+
+        a::after {
+            content: '';
+            position: absolute;
+            bottom: 0px;
+            left: 0;
+            width: 100%;
+            height: 2px;
+            background-color: orange;
+            opacity: 0;
+            transition: opacity 300ms, transform 300ms;
+        }
+
+        a:hover::after,
+        a:focus::after {
+            opacity: 1;
+            transform: translate3d(0, 6px, 0);
+        }
+
+    </style>
+
+
+</head>
+
+<body id="layout-page" style="padding: 0;">
+    <div class="layout-div1" style="padding: 0; border-bottom: 0px solid orange;">
+        <div class="container" style="border:0px solid orange;height:100px;padding:0px">
+
+            <div class="menu-header rm-pd" style="border:1px solid white;padding:0;height:100px;">
+
+                <div id="logo" class="rm-pd">
+                    <img class="col-xs-12 menu-top-header-icon rm-pds" src="~/images/webtonic_logo.png" style="width:300px;height:50px;" />
+                </div>
+
+                <ul class="menu rm-pd" style="border:0px solid green;padding:0;">
+
+                    <li class="menu-item">
+                        <a href="#">
+                            <span class="menu-name">ABOUT US</span>
+                        </a>
+                    </li>
+                    <li class="menu-item">
+                        <a href="#">
+                            <span class="menu-name">OUR SERVICES</span>
+                        </a>
+                    </li>
+                    <li class="menu-item">
+                        <a href="#">
+                            <span class="menu-name">OUR PORTFOLIO</span>
+                        </a>
+                    </li>
+                    <li class="menu-item">
+                        <a href="#">
+                            <span class="menu-name">CAREERS</span>
+                        </a>
+                    </li>
+                    <li class="menu-item pull-right" id="login">
+                        <a href="#" class="login text-center" style="line-height: 48px;">
+                            LOGIN
+                        </a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </div>
+    <div class="col-xs-12 rm-pd" style="border:0px solid red;min-height:300px;">
+        @RenderBody()
+    </div>
+    @*<div class="col-lg-12 footer">
+            <p style="text-align:center">Click here for COVID-19 information</p>
+        </div>*@
+
+    <div id="PopupOverlay" class="col-sm-12"></div>
+    <div id="div-busy-Icon" class="col-xs-12" style="display:none;">
+        <img class="busy-icon" src="~/images/loading.gif" />
+    </div>
+</body>
+</html>
+
+<script>
+
+    function simpleHideMenu() {
+        var $containerWidth = $(window).width();
+        if ($containerWidth <= 1200) {
+            $('.menu-item a').css({
+                display: 'none'
+            });
+            $(".menu-item .login").show();
+        }
+        else {
+            $('.menu-item a').css({
+                display: 'block'
+            });
+        }
+    }
+    $(window).resize(function () {
+        simpleHideMenu();
+    });
+
+</script>
