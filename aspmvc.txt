@@ -1,0 +1,587 @@
+
+<configuration>
+  <connectionStrings>
+    <add name="connectionString" connectionString="Data Source=SphiweM;Initial Catalog=SBSDatabase;Integrated Security=SSPI;" providerName="System.Data.SqlClient"/>
+  </connectionStrings>
+  <appSettings>
+    <add key="webpages:Version" value="3.0.0.0"/>
+    <add key="webpages:Enabled" value="false"/>
+    <add key="ClientValidationEnabled" value="true"/>
+    <add key="UnobtrusiveJavaScriptEnabled" value="true"/>
+  </appSettings>
+
+
+using System.Configuration;
+namespace NetcarePortal.Models.Data
+{
+    public class DataBaseConnectorString
+    {
+        public static readonly string ConnectionString = ConfigurationManager.ConnectionStrings["connectionString"].ConnectionString;
+    }
+}
+
+using System.Collections.Generic;
+
+namespace SBS.Services.Interface
+{
+    public interface IRepositoryBase<T> where T : class
+    {
+        List<T> GetAll();
+        List<T> GetById(string id);
+        void Save(T model);
+        void Update(T model);
+    }
+}
+
+
+using NetcarePortal.Models.Data;
+using System;
+using System.Collections.Generic;
+using System.Data;
+using System.Data.SqlClient;
+using SBS.Services.Interface;
+
+namespace SBS.Services.Repository
+{
+    public abstract class RepositoryBase<T> : IDisposable, IRepositoryBase<T> where T : class, new()
+    {
+        public SqlCommand command = null;
+        public DataTable table = null;
+        bool _isSuccess = true;
+        public RepositoryBase()
+        {
+            command = new SqlCommand();
+            command.CommandText = "";
+            table = new DataTable();
+        }
+
+        public virtual List<T> GetAll()
+        {
+            using (SqlConnection connection = new SqlConnection(DataBaseConnectorString.ConnectionString))
+            {
+                List<T> modelList = new List<T>();
+                command.Connection = connection;
+
+                try
+                {
+                    connection.Open();
+                    var reader = command.ExecuteReader();
+                    try
+                    {
+                        while (reader.Read())
+                        {
+                            T model = null;
+                            model = PopulateRecord(reader);
+
+                            modelList.Add(model);
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        throw;
+                    }
+                    finally
+                    {
+                        reader.Close();
+                    }
+                }
+                catch (Exception ex)
+                {
+                    throw;
+                }
+                finally
+                {
+                    connection.Close(); ;
+                }
+                return modelList;
+            }
+        }
+
+        public virtual void Save(T model)
+        {
+            using (SqlConnection connection = new SqlConnection(DataBaseConnectorString.ConnectionString))
+            {
+                try
+                {
+                    command.Connection = connection;
+                    connection.Open();
+                    command.ExecuteNonQuery();
+                    _isSuccess = true;
+                }
+                catch (Exception ex)
+                {
+                    _isSuccess = false;
+                }
+                finally
+                {
+                    connection.Close(); ;
+                }
+            }
+        }
+
+        public virtual void Update(T model)
+        {
+            using (SqlConnection connection = new SqlConnection(DataBaseConnectorString.ConnectionString))
+            {
+                try
+                {
+                    command.Connection = connection;
+                    connection.Open();
+                    command.ExecuteNonQuery();
+                }
+                catch (Exception ex)
+                {
+                    _isSuccess = false;
+                    throw;
+                }
+                finally
+                {
+                    connection.Close(); ;
+                }
+            }
+        }
+
+        public virtual T PopulateRecord(SqlDataReader reader)
+        {
+            return null;
+        }
+
+        public virtual List<T> GetById(string id)
+        {
+            using (SqlConnection connection = new SqlConnection(DataBaseConnectorString.ConnectionString))
+            {
+                List<T> modelList = new List<T>();
+                command.Connection = connection;
+
+                try
+                {
+                    connection.Open();
+                    var reader = command.ExecuteReader();
+                    try
+                    {
+                        while (reader.Read())
+                        {
+                            T model = null;
+                            model = PopulateRecord(reader);
+
+                            modelList.Add(model);
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                    }
+                    finally
+                    {
+                        reader.Close();
+                    }
+                }
+                catch (Exception ex)
+                {
+                }
+                finally
+                {
+                    connection.Close(); ;
+                }
+                return modelList;
+            }
+        }
+
+        public void Dispose()
+        {
+            Dispose(true);
+            GC.SuppressFinalize(this);
+        }
+
+        private bool disposed = false;
+
+        protected virtual void Dispose(bool disposing)
+        {
+            if (!this.disposed)
+            {
+                if (disposing)
+                {
+                    //context.Dispose();
+                }
+            }
+            this.disposed = true;
+        }
+
+    }
+}
+
+
+
+
+
+
+using SBS.Entities.Entities;
+
+namespace SBS.Services.Interface
+{
+    public interface IPersonRepository : IRepositoryBase<Person>
+    {
+        void UpdateLastLogin(Person model);
+    }
+}
+
+
+using System;
+using System.Collections.Generic;
+using System.Data.SqlClient;
+using SBS.Entities.Entities;
+using SBS.Services.Interface;
+
+namespace SBS.Services.Repository
+{
+    public class PersonRepository : RepositoryBase<Person>, IPersonRepository
+    {
+        public override List<Person> GetAll()
+        {
+            command.CommandText = "SELECT * FROM [SBSDatabase].dbo.Person";
+            return base.GetAll();
+        }
+
+        public List<Person> GetByEmail(string email)
+        {
+            command.CommandText = "SELECT * FROM [SBSDatabase].dbo.Person WHERE Email = @email";
+            command.Parameters.AddWithValue("@email", email);
+            return base.GetById(email);
+        }
+
+        public override void Update(Person model)
+        {
+            command.CommandText = "UPDATE [SBSDatabase].dbo.Person SET Email=@Email, " +
+                    "Password=@Password WHERE id = @id";
+
+            command.Parameters.AddWithValue("@Email", model.Email);
+            command.Parameters.AddWithValue("@Password", model.Password);
+            command.Parameters.AddWithValue("@id", model.id);
+            base.Update(model);
+        }
+
+        public void UpdateLastLogin(Person model)
+        {
+            model.LastLogin = DateTime.Now;
+            command.CommandText = "UPDATE [SBSDatabase].dbo.Person SET LastLogin=@LastLogin WHERE id = @id";
+            command.Parameters.AddWithValue("@LastLogin", model.LastLogin);
+            command.Parameters.AddWithValue("@id", model.id);
+            base.Update(model);
+        }
+
+        public override Person PopulateRecord(SqlDataReader rows)
+        {
+            try
+            {
+                Person model1 = new Person();
+                model1.id = rows["id"].ToString();
+                model1.Name = rows["Name"].ToString();
+                model1.Surname = rows["Surname"].ToString();
+                model1.Email = rows["Email"].ToString();
+                model1.Password = rows["Password"].ToString();
+                model1.LastLogin = DateTime.Parse( rows["LastLogin"].ToString());
+
+                return model1;
+            }
+            catch (Exception ex)
+            {
+                throw;
+            }
+        }
+    }
+}
+
+
+Global.asax
+
+using SBS.UI;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Web;
+using System.Web.Mvc;
+using System.Web.Optimization;
+using System.Web.Routing;
+
+namespace sbs
+{
+    public class MvcApplication : System.Web.HttpApplication
+    {
+        protected void Application_Start()
+        {
+            AreaRegistration.RegisterAllAreas();
+            FilterConfig.RegisterGlobalFilters(GlobalFilters.Filters);
+            RouteConfig.RegisterRoutes(RouteTable.Routes);
+            BundleConfig.RegisterBundles(BundleTable.Bundles);
+            UnityConfig.RegisterComponents();
+        }
+
+       
+        protected void Application_Error(object sender, EventArgs e)
+        {
+            Exception exception = Server.GetLastError();
+            HttpRequest request = HttpContext.Current.Request;
+            var values = new System.Web.Routing.RouteValueDictionary();
+
+            string StakeTrace = exception.StackTrace;
+            string massage = exception.Message;
+            var exceptionName = exception.GetType().Name;
+            string urlPath = request.Url.AbsolutePath;
+            string urlPath1 = request.AppRelativeCurrentExecutionFilePath;
+
+            Response.Redirect("~/Errors/ErrorExeptionsMessage/?ErrorInfo=" + massage);
+        }
+    }
+}
+
+
+
+using System;
+using System.Collections.Generic;
+using System.Data.SqlClient;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+using System.Data;
+using School.Entities.Fields;
+using School.Services.Interface;
+using Newtonsoft.Json.Linq;
+
+namespace School.Services.Repository
+{
+    public class StudentMarksRepository : BaseRepository<StudentSubjectMarks>, IStudentMarksRepository
+    {
+
+        public override List<StudentSubjectMarks> GetAll()
+        {
+            command.CommandText = "SELECT * FROM schoolbd.dbo.SubjectResult";
+            return base.GetAll();
+        }
+
+        public override List<StudentSubjectMarks> GetById(string id)
+        {
+             command.CommandText = " Select st.StudentId,FirstName,LastName,sm.GradeId,sm.SubjectId,sm.MarkValue,sm.ExamType " +
+                "From StudentTeacher st " +
+                "INNER JOIN StudentMarks sm1 ON sm1.StudentId=st.StudentId " +
+	            "AND sm1.GradeId='Grade12' " +
+                "LEFT JOIN StudentMarks sm ON sm.StudentId=st.StudentId " +
+	            "AND sm.ExamType='Q2' AND sm.GradeId='Grade12' " +
+                "LEFT JOIN Student u ON u.UserId=st.StudentId;"; 
+            return base.GetById(id);
+        }
+
+        public List<StudentSubjectMarks> GetByAny(dynamic obj)
+        {
+            sqlQueries(obj);
+            return base.GetById("");
+        }
+
+        public override void Save(StudentSubjectMarks model)
+        {
+            command.CommandText = "INSERT INTO StudentMarks(StudentId,GradeId,ExamType,SubjectId,MarkValue,ExamDate) values" +
+                                "(@StudentId,@GradeId,@ExamType,@SubjectId,@MarkValue,@ExamDate) ";
+
+            command.Parameters.AddWithValue("StudentId", model.StudentId);
+            command.Parameters.AddWithValue("GradeId", model.GradeId);
+            command.Parameters.AddWithValue("ExamType", model.ExamType);
+            command.Parameters.AddWithValue("SubjectId", model.SubjectId);
+            command.Parameters.AddWithValue("MarkValue", model.MarkValue);
+            command.Parameters.AddWithValue("ExamDate", model.ExamDate);
+            base.Save(model);
+        }
+
+
+        public override void SaveMany(List<StudentSubjectMarks> model)
+        {
+            command.CommandText = "INSERT INTO StudentMarks(StudentId,GradeId,ExamType,SubjectId,MarkValue,ExamDate) values" +
+                                "(@StudentId,@GradeId,@ExamType,@SubjectId,@MarkValue,@ExamDate) ";
+            base.SaveMany(model);
+        }
+
+        public override void Update(StudentSubjectMarks model)
+        {
+            //command.CommandText = "UPDATE StudentMarks SET MarkValue=@MarkValue " +
+            //        "Symbol=@Symbol WHERE StudentId = @StudentId AND GradeId = @GradeId AND SubjectId = @SubjectId  AND ExamDate = @ExamDate";
+
+            command.CommandText = "UPDATE StudentMarks SET MarkValue=@MarkValue " +
+          "WHERE StudentId = @StudentId AND GradeId = @GradeId AND SubjectId = @SubjectId";
+
+            command.Parameters.AddWithValue("@StudentId", model.StudentId);
+            command.Parameters.AddWithValue("@GradeId", model.GradeId);
+            command.Parameters.AddWithValue("@SubjectId", model.SubjectId);
+            command.Parameters.AddWithValue("@MarkValue", model.MarkValue);
+            //command.Parameters.AddWithValue("@ExamDate", model.ExamDate);
+
+            base.Update(model);
+        }
+
+
+        public override StudentSubjectMarks PopulateRecord(SqlDataReader rows)
+        {
+            try
+            {
+                StudentSubjectMarks model = new StudentSubjectMarks();
+                model.StudentId = rows["UserId"].ToString();
+                model.FirstName = rows["Firstname"].ToString();
+                model.LastName = rows["LastName"].ToString();
+                if (rows.FieldCount > 5)
+                {
+                    model.SubjectId = rows["SubjectId"].ToString();
+                    model.SubjectName = rows["SubjectName"].ToString();
+                    model.MarkValue = rows["MarkValue"].ToString();
+                }
+                return model;
+            }
+            catch (Exception ex)
+            {
+                throw;
+            }
+        }
+
+        public override void command_ExecuteNonQuery(List<StudentSubjectMarks> _model)
+        {
+            foreach (var model in _model)
+            {
+                try
+                {
+                    command.Parameters.Clear();
+                    command.Parameters.AddWithValue("StudentId", model.StudentId);
+                    command.Parameters.AddWithValue("GradeId", model.GradeId);
+                    command.Parameters.AddWithValue("ExamType", model.ExamType);
+                    command.Parameters.AddWithValue("SubjectId", model.SubjectId);
+                    command.Parameters.AddWithValue("MarkValue", model.MarkValue);
+                    command.Parameters.AddWithValue("ExamDate", model.ExamDate);
+                    command.Connection.Open();
+                    command.ExecuteNonQuery();
+                    command.Connection.Close();
+                }
+                catch (Exception ex)
+                {
+                }
+            }
+        }
+
+        public override void sqlQueries(dynamic obj)
+        {
+            string json = Newtonsoft.Json.JsonConvert.SerializeObject(obj);
+            dynamic _obj = JObject.Parse(json);
+            string jsonString = Convert.ToString(obj); //var obj = { StudentId = "StudentId", GradeId = "GradeI2", queryType = "searchByGrade" }
+            string gradeId = _obj.GradeId;
+            string subjectId = _obj.SubjectId ?? "0";
+            string examDate = _obj.ExamDate ?? "0";
+            examDate = examDate.Replace('/', '-');
+            string teacherId = _obj.TeacherId ?? "0";
+            string type = _obj.type ?? "0";
+            string sql = "";
+
+            switch (type)
+            {
+                case "start":
+                    //sql = "SELECT  s.UserId,s.Firstname,s.LastName,sm.GradeId,sm.SubjectId,sb.SubjectName,sm.MarkValue " +
+                    //"FROM  Student s " +
+                    //"INNER JOIN StudentMarks sm ON( sm.StudentId = s.UserId AND sm.GradeId=@GradeId AND sm.SubjectId=@SubjectId AND ExamDate=@ExamDate ) " +
+                    //"Left JOIN Subject sb ON sb.SubjectId = sm.SubjectId";
+
+                    sql = "SELECT s.UserId,s.Firstname,s.LastName FROM  Student s " +
+                    "WHERE UserId in( " +
+                    "SELECT st.StudentId From StudentTeacher st " +
+                    "WHERE st.StudentId in( " +
+                    "SELECT StudentId from StudentMarks Where GradeId=@GradeId and SubjectId=@SubjectId " +
+                     ") " +
+                    "AND TeacherId=@TeacherId )";
+
+                    command.CommandText = sql;
+                    command.Parameters.AddWithValue("@TeacherId", teacherId);
+                    command.Parameters.AddWithValue("@GradeId", gradeId);
+                    command.Parameters.AddWithValue("@SubjectId", subjectId);
+
+                    break;
+
+                case "existingRecords":
+                    sql = "SELECT  s.UserId,s.Firstname,s.LastName,sm.GradeId,sm.SubjectId,sb.SubjectName,sm.MarkValue " +
+                    "FROM  Student s " +
+                    "INNER JOIN StudentMarks sm ON( sm.StudentId = s.UserId AND sm.GradeId=@GradeId AND sm.SubjectId=@SubjectId AND ExamDate=@ExamDate ) " +
+                    "Left JOIN Subject sb ON sb.SubjectId = sm.SubjectId";
+
+                    command.CommandText = sql;
+                    command.Parameters.AddWithValue("@GradeId", gradeId);
+                    command.Parameters.AddWithValue("@SubjectId", subjectId);
+                    command.Parameters.AddWithValue("@ExamDate", examDate);
+                    break;
+                case "hasRecords":
+                    sql = "SELECT  s.UserId,s.Firstname,s.LastName,sm.GradeId,sm.SubjectId,sb.SubjectName,sm.MarkValue " +
+                    "FROM  Student s " +
+                    "INNER JOIN StudentMarks sm ON( sm.StudentId = s.UserId AND sm.GradeId=@GradeId AND sm.SubjectId=@SubjectId AND ExamDate=@ExamDate ) " +
+                    "Left JOIN Subject sb ON sb.SubjectId = sm.SubjectId";
+
+                    command.CommandText = sql;
+                    command.Parameters.AddWithValue("@GradeId", gradeId);
+                    command.Parameters.AddWithValue("@SubjectId", subjectId);
+                    command.Parameters.AddWithValue("@ExamDate", examDate);
+                    break;
+                case "noMarksButHasDate":
+                    sql = "SELECT  s.UserId,s.Firstname,s.LastName,sm.GradeId,sm.SubjectId,sb.SubjectName,sm.MarkValue " +
+                    "FROM  Student s " +
+                    "INNER JOIN StudentMarks sm ON( sm.StudentId = s.UserId AND sm.GradeId=@GradeId AND sm.SubjectId=@SubjectId AND ExamDate=@ExamDate AND sm.MarksValue='') " +
+                    "Left JOIN Subject sb ON sb.SubjectId = sm.SubjectId";
+
+                    command.CommandText = sql;
+                    command.Parameters.AddWithValue("@GradeId", gradeId);
+                    command.Parameters.AddWithValue("@SubjectId", subjectId);
+                    command.Parameters.AddWithValue("@ExamDate", examDate);
+                    break;
+                default:
+                    break;
+            }
+        }
+
+
+
+        /*
+        public override StudentSubjectMarks PopulateRecord(SqlDataReader rows)
+        {
+            try
+            {
+                StudentSubjectMarks model = new StudentSubjectMarks();
+                model.StudentId = rows["UserId"].ToString();
+                model.FirstName = rows["FirstName"].ToString();
+                model.LastName = rows["LastName"].ToString();
+                model.GradeId = rows["GradeId"].ToString();
+                //model.ExamQuarter = rows["ExamQuarter"].ToString();
+                model.SubjectId = rows["SubjectId"].ToString();
+                model.MarkValue = rows["MarkValue"].ToString();
+                //model.ExamType = rows["ExamType"].ToString();
+
+                return model;
+            }
+            catch (Exception ex)
+            {
+                throw;
+            }
+        }
+
+        public override void command_ExecuteNonQuery(List<StudentSubjectMarks> _model)
+        {
+            foreach (var model in _model)
+            {
+                try
+                {
+                    command.Parameters.Clear();
+                    command.Parameters.AddWithValue("SubjectId", model.SubjectId);
+                    //command.Parameters.AddWithValue("@SubjectName", model.SubjectName);
+                    command.Connection.Open();
+                    command.ExecuteNonQuery();
+                    command.Connection.Close();
+                }
+                catch (Exception ex)
+                {
+                }
+            }
+        }
+*/
+
+
+    }
+}
+
+
+
